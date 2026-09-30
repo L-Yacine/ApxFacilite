@@ -1,0 +1,318 @@
+@model ImportPreviewViewModel
+@{
+    ViewData["Title"] = "Aperçu de l'import";
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Aperçu de l'import</h1>
+</div>
+
+<div class="form-text mb-3">
+    Fichier : <span class="font-mono">@Model.FileName</span>
+</div>
+
+@if (Model.HasErrors)
+{
+    <div class="alert alert-danger py-2">
+        <strong>@Model.ErrorGroups.Sum(g => g.Items.Count) erreur(s) détectée(s)</strong>
+        — aucune donnée ne sera importée tant que le fichier n'est pas corrigé.
+    </div>
+
+    @foreach (var group in Model.ErrorGroups)
+    {
+        <div class="card landing-card mb-3">
+            <div class="card-body">
+                <h2 class="h6 text-uppercase text-muted mb-3">Feuille « @group.Sheet »</h2>
+                <div class="table-responsive">
+                    <table class="table table-dense align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 110px;">Ligne</th>
+                                <th>Problème</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in group.Items)
+                            {
+                                <tr>
+                                    <td class="font-mono">
+                                        @(item.RowNumber == 0 ? "—" : item.RowNumber.ToString())
+                                    </td>
+                                    <td>@item.Message</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <a asp-action="Index" class="btn btn-primary">Corriger le fichier et réessayer</a>
+}
+else
+{
+    <div class="alert alert-success py-2">
+        Fichier valide — voici ce qui sera importé. L'import est définitif et s'exécute
+        en une seule opération (ou aucune).
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-lg-3">
+            <div class="card landing-card h-100">
+                <div class="card-body py-2">
+                    <div class="stat-card-value">@Model.ProductCount</div>
+                    <div class="text-muted small">Produits</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card landing-card h-100">
+                <div class="card-body py-2">
+                    <div class="stat-card-value">@Model.SupplierCount</div>
+                    <div class="text-muted small">Fournisseurs</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card landing-card h-100">
+                <div class="card-body py-2">
+                    <div class="stat-card-value">@Model.ClientCount</div>
+                    <div class="text-muted small">Clients</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card landing-card h-100">
+                <div class="card-body py-2">
+                    <div class="stat-card-value">@Model.SaleCount</div>
+                    <div class="text-muted small">Ventes</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card landing-card h-100">
+                <div class="card-body py-2">
+                    <div class="stat-card-value">@Model.InstalmentCount</div>
+                    <div class="text-muted small">Mensualités</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card landing-card h-100">
+                <div class="card-body py-2">
+                    <div class="stat-card-value">@Model.CategoriesToCreate</div>
+                    <div class="text-muted small">Catégories à créer</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card landing-card h-100">
+                <div class="card-body py-2">
+                    <div class="stat-card-value">@Model.BrandsToCreate</div>
+                    <div class="text-muted small">Marques à créer</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card landing-card h-100">
+                <div class="card-body py-2">
+                    <div class="stat-card-value">@Model.SalesWithSchedule</div>
+                    <div class="text-muted small">Échéancier fourni</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card landing-card h-100">
+                <div class="card-body py-2">
+                    <div class="stat-card-value">@Model.SalesWithGeneratedSchedule</div>
+                    <div class="text-muted small">Échéancier recalculé</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.SalesWithGeneratedSchedule > 0)
+    {
+        <div class="alert alert-info py-2">
+            @Model.SalesWithGeneratedSchedule vente(s) sans échéancier : le calendrier sera
+            recalculé comme lors d'une nouvelle vente (première échéance un mois après la date
+            de vente, toutes les mensualités « En attente »).
+        </div>
+    }
+
+    <div class="card landing-card mb-3">
+        <div class="card-body">
+            <h2 class="h6 text-uppercase text-muted mb-3">Produits</h2>
+            @if (Model.Products.Count == 0)
+            {
+                <div class="text-muted">Aucun produit.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-dense align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Catégorie</th>
+                                <th>Marque</th>
+                                <th class="text-end">Prix d'achat</th>
+                                <th class="text-end">Prix de vente</th>
+                                <th class="text-end">Stock initial</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.Products)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@p.Name</td>
+                                    <td>@p.CategoryName</td>
+                                    <td>@p.BrandName</td>
+                                    <td class="text-end font-mono">@p.UnitCost.ToDa()</td>
+                                    <td class="text-end font-mono">@p.UnitSalePrice.ToDa()</td>
+                                    <td class="text-end font-mono">@p.InitialStock</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card landing-card mb-3">
+        <div class="card-body">
+            <h2 class="h6 text-uppercase text-muted mb-3">Clients</h2>
+            @if (Model.Clients.Count == 0)
+            {
+                <div class="text-muted">Aucun client.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-dense align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>N° de compte</th>
+                                <th>Clé</th>
+                                <th>Nom</th>
+                                <th>Prénom</th>
+                                <th>Téléphone</th>
+                                <th>N° de dossier</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Clients)
+                            {
+                                <tr>
+                                    <td class="font-mono">@c.AccountNumber</td>
+                                    <td class="font-mono">@c.AccountKey</td>
+                                    <td>@c.LastName</td>
+                                    <td>@c.FirstName</td>
+                                    <td class="font-mono">@(c.Phone ?? "—")</td>
+                                    <td class="font-mono">@(c.DossierNumber ?? "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card landing-card mb-3">
+        <div class="card-body">
+            <h2 class="h6 text-uppercase text-muted mb-3">Fournisseurs</h2>
+            @if (Model.Suppliers.Count == 0)
+            {
+                <div class="text-muted">Aucun fournisseur.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-dense align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Téléphone</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in Model.Suppliers)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@s.Name</td>
+                                    <td class="font-mono">@(s.Phone ?? "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card landing-card mb-3">
+        <div class="card-body">
+            <h2 class="h6 text-uppercase text-muted mb-3">Ventes</h2>
+            @if (Model.Sales.Count == 0)
+            {
+                <div class="text-muted">Aucune vente.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-dense align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>N° vente</th>
+                                <th>N° de compte</th>
+                                <th>Date de vente</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-end">Acompte</th>
+                                <th class="text-end">Mensualités</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sale in Model.Sales)
+                            {
+                                <tr>
+                                    <td class="font-mono">@sale.Reference</td>
+                                    <td class="font-mono">@sale.ClientAccountNumber</td>
+                                    <td>@sale.SaleDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-end font-mono">@sale.TotalAmount.ToDa()</td>
+                                    <td class="text-end font-mono">@sale.DownPayment.ToDa()</td>
+                                    <td class="text-end font-mono">@sale.NumberOfInstalments</td>
+                                    <td>
+                                        @if (sale.Status == InstalmentPlanStatus.Completed)
+                                        {
+                                            <span class="status-pill status-pill-active">Soldé</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-pill status-pill-inactive">En cours</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <form asp-action="Confirm" method="post"
+          data-confirm="Importer définitivement ces données ? L'opération crée tout (ou rien) et ne peut pas être annulée."
+          onsubmit="return confirm(this.dataset.confirm);">
+        <input type="hidden" name="token" value="@Model.Token" />
+        <button type="submit" class="btn btn-primary">Importer les données</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
+    </form>
+    <div class="form-text mt-2">
+        Après l'import, corrigez une éventuelle erreur directement dans le fichier et relancez
+        l'analyse — l'import ne crée jamais deux fois la même donnée.
+    </div>
+}

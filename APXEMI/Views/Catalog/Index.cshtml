@@ -1,0 +1,177 @@
+@model CatalogIndexViewModel
+@{
+    ViewData["Title"] = "Catégories & marques";
+    var isOwner = User.IsInRole(nameof(UserRole.Owner));
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Catégories &amp; marques</h1>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2">@error</div>
+}
+
+<div class="form-text mb-3">
+    Les catégories et marques sont choisies dans des menus déroulants lors de la création
+    d'un produit. Tout le personnel peut en ajouter ; seul le Propriétaire peut les
+    renommer ou les désactiver. Une entrée désactivée n'est plus proposée aux nouveaux
+    produits, mais reste visible sur l'historique.
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card landing-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <h2 class="h6 text-uppercase text-muted mb-0 me-auto">Catégories</h2>
+                    <a asp-action="CreateCategory" class="btn btn-primary btn-sm">Nouvelle catégorie</a>
+                </div>
+
+                @if (Model.Categories.Count == 0)
+                {
+                    <div class="text-muted">
+                        Aucune catégorie pour le moment — ajoutez la première avec « Nouvelle catégorie ».
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-dense align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th class="text-end">Produits</th>
+                                    <th>Statut</th>
+                                    @if (isOwner)
+                                    {
+                                        <th class="text-end">Actions</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var c in Model.Categories)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@c.Name</td>
+                                        <td class="text-end font-mono">@c.ProductCount</td>
+                                        <td>
+                                            @if (c.IsActive)
+                                            {
+                                                <span class="status-pill status-pill-active">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="status-pill status-pill-inactive">Désactivée</span>
+                                            }
+                                        </td>
+                                        @if (isOwner)
+                                        {
+                                            <td class="text-end text-nowrap">
+                                                <a asp-action="EditCategory" asp-route-id="@c.Id" class="btn btn-outline-secondary btn-sm">Modifier</a>
+                                                <form asp-action="ToggleCategory" asp-route-id="@c.Id" method="post" class="d-inline"
+                                                      data-confirm="@(c.IsActive
+                                                          ? $"Désactiver la catégorie « {c.Name} » ? Elle ne sera plus proposée lors de la création de produits, mais restera visible sur l'historique."
+                                                          : $"Réactiver la catégorie « {c.Name} » ?")"
+                                                      onsubmit="return confirm(this.dataset.confirm);">
+                                                    @if (c.IsActive)
+                                                    {
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm">Désactiver</button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="submit" class="btn btn-outline-success btn-sm">Réactiver</button>
+                                                    }
+                                                </form>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card landing-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <h2 class="h6 text-uppercase text-muted mb-0 me-auto">Marques</h2>
+                    <a asp-action="CreateBrand" class="btn btn-primary btn-sm">Nouvelle marque</a>
+                </div>
+
+                @if (Model.Brands.Count == 0)
+                {
+                    <div class="text-muted">
+                        Aucune marque pour le moment — ajoutez la première avec « Nouvelle marque ».
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-dense align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th class="text-end">Produits</th>
+                                    <th>Statut</th>
+                                    @if (isOwner)
+                                    {
+                                        <th class="text-end">Actions</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var b in Model.Brands)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@b.Name</td>
+                                        <td class="text-end font-mono">@b.ProductCount</td>
+                                        <td>
+                                            @if (b.IsActive)
+                                            {
+                                                <span class="status-pill status-pill-active">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="status-pill status-pill-inactive">Désactivée</span>
+                                            }
+                                        </td>
+                                        @if (isOwner)
+                                        {
+                                            <td class="text-end text-nowrap">
+                                                <a asp-action="EditBrand" asp-route-id="@b.Id" class="btn btn-outline-secondary btn-sm">Modifier</a>
+                                                <form asp-action="ToggleBrand" asp-route-id="@b.Id" method="post" class="d-inline"
+                                                      data-confirm="@(b.IsActive
+                                                          ? $"Désactiver la marque « {b.Name} » ? Elle ne sera plus proposée lors de la création de produits, mais restera visible sur l'historique."
+                                                          : $"Réactiver la marque « {b.Name} » ?")"
+                                                      onsubmit="return confirm(this.dataset.confirm);">
+                                                    @if (b.IsActive)
+                                                    {
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm">Désactiver</button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="submit" class="btn btn-outline-success btn-sm">Réactiver</button>
+                                                    }
+                                                </form>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

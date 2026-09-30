@@ -1,0 +1,77 @@
+@model List<UserListItemViewModel>
+@{
+    ViewData["Title"] = "Utilisateurs";
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Utilisateurs</h1>
+    <a asp-action="Create" class="btn btn-primary btn-sm ms-auto">Nouvel utilisateur</a>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2">@error</div>
+}
+
+<div class="card landing-card">
+    <div class="table-responsive">
+        <table class="table table-dense table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Nom d'utilisateur</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Créé le</th>
+                    <th>Créé par</th>
+                    <th>Dernière connexion</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@u.Name</td>
+                        <td class="font-mono">@u.Username</td>
+                        <td><span class="role-pill">@u.Role.ToFrench()</span></td>
+                        <td>
+                            @if (u.IsActive)
+                            {
+                                <span class="status-pill status-pill-active">Actif</span>
+                            }
+                            else
+                            {
+                                <span class="status-pill status-pill-inactive">Désactivé</span>
+                            }
+                        </td>
+                        <td>@u.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                        <td>@(u.CreatedByName ?? "—")</td>
+                        <td>@(u.LastLoginAtUtc?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                        <td class="text-end text-nowrap">
+                            <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-outline-secondary btn-sm">Modifier</a>
+                            <form asp-action="ToggleActive" asp-route-id="@u.Id" method="post" class="d-inline"
+                                  data-confirm="@(u.IsActive
+                                      ? $"Désactiver le compte de {u.Name} ? Son accès sera révoqué immédiatement."
+                                      : $"Réactiver le compte de {u.Name} ?")"
+                                  onsubmit="return confirm(this.dataset.confirm);">
+                                @if (u.IsActive)
+                                {
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Désactiver</button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-outline-success btn-sm">Réactiver</button>
+                                }
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

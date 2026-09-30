@@ -1,0 +1,257 @@
+@model PrelevementDetailsViewModel
+@{
+    ViewData["Title"] = $"Prélèvement {Model.ReferenceMonth}";
+    var isOwner = User.IsInRole(nameof(UserRole.Owner));
+    var included = Model.Lines.Where(l => !l.IsExcluded).ToList();
+    var total = included.Sum(l => l.Amount);
+}
+
+<div class="page-header d-flex align-items-center gap-3 flex-wrap">
+    <div>
+        <h1 class="h4 mb-0">Prélèvement — @Model.ReferenceMonth</h1>
+        <div class="text-muted small">
+            Généré le @Model.GeneratedAtUtc.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")
+            @if (Model.GeneratedByName is not null)
+            {
+                <text>par @Model.GeneratedByName</text>
+            }
+            — @included.Count mensualité(s) à prélever
+            @if (Model.Lines.Count - included.Count > 0)
+            {
+                <text>(@(Model.Lines.Count - included.Count) exclue(s))</text>
+            }
+        </div>
+    </div>
+    <div class="ms-auto d-flex gap-2">
+        @if (isOwner)
+        {
+            <form asp-action="Regenerate" method="post" class="d-inline"
+                  onsubmit="return confirm('Régénérer le lot @Model.ReferenceMonth ? Les lignes seront reconstruites et les exclusions réinitialisées.');">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Régénérer</button>
+            </form>
+            @if (included.Count > 0)
+            {
+                <a asp-action="Export" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">Exporter en Excel</a>
+            }
+        }
+    </div>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2">@error</div>
+}
+
+<div class="card landing-card">
+    @if (Model.Lines.Count == 0)
+    {
+        <div class="card-body text-muted">
+            Ce lot ne contient aucune ligne — régénérez-le ou générez un autre mois.
+        </div>
+    }
+    else
+    {
+        <form asp-action="SaveExclusions" method="post">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <div class="table-responsive">
+                <table class="table table-dense table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            @if (isOwner)
+                            {
+                                <th class="text-center" style="width: 4.5rem;">
+                                    <span title="Exclure de l'export">Exclure</span>
+                                </th>
+                            }
+                            <th>N° de compte</th>
+                            <th>Clé</th>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th class="text-end">Montant</th>
+                            <th>Début du plan</th>
+                            <th>Fin du plan</th>
+                            <th class="text-end">Mensualités</th>
+                            <th>Rapprochement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var l in Model.Lines)
+                        {
+                            <tr class="@(l.IsExcluded ? "table-secondary text-muted" : "")">
+                                @if (isOwner)
+                                {
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input" name="excludedLineIds" value="@l.Id"
+                                               @(l.IsExcluded ? "checked" : "")
+                                               aria-label="Exclure la ligne de @l.ClientLastName @l.ClientFirstName" />
+                                    </td>
+                                }
+                                <td class="font-mono">@l.ClientAccountNumber</td>
+                                <td class="font-mono">@l.ClientAccountKey</td>
+                                <td>@l.ClientLastName</td>
+                                <td>@l.ClientFirstName</td>
+                                <td class="text-end font-mono fw-semibold">@l.Amount.ToDa()</td>
+                                <td class="text-nowrap">@l.StartDate.ToString("dd/MM/yyyy")</td>
+                                <td class="text-nowrap">@l.EndDate.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end font-mono">@l.NumberOfInstalments</td>
+                                <td>
+                                    @if (l.ReconcileStatus == InstalmentStatus.Paid)
+                                    {
+                                        <span class="status-pill status-pill-active">Payée</span>
+                                    }
+                                    else if (l.ReconcileStatus == InstalmentStatus.Failed)
+                                    {
+                                        <span class="status-pill status-pill-inactive">Échouée</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill">À rapprocher</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="fw-semibold">
+                            @if (isOwner)
+                            {
+                                <td></td>
+                            }
+                            <td colspan="4">Total à prélever (@included.Count ligne(s))</td>
+                            <td class="text-end font-mono">@total.ToDa()</td>
+                            <td colspan="4"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            @if (isOwner)
+            {
+                <div class="card-footer py-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">
+                        Cochez une ligne pour l'exclure de l'export (ex. déjà payé en espèces) — la ligne reste conservée.
+                    </span>
+                    <button type="submit" class="btn btn-primary btn-sm">Enregistrer les exclusions</button>
+                </div>
+            }
+        </form>
+    }
+</div>
+
+@if (isOwner)
+{
+    <div class="card landing-card mt-3">
+        <div class="card-body py-2 d-flex align-items-center gap-2 flex-wrap">
+            <h2 class="h6 mb-0">Rapprochement des paiements</h2>
+            @if (Model.ReconciledAtUtc.HasValue)
+            {
+                <span class="status-pill status-pill-active">Rapproché</span>
+                <span class="text-muted small">
+                    le @Model.ReconciledAtUtc.Value.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")
+                    @if (Model.ReconciledByName is not null)
+                    {
+                        <text>par @Model.ReconciledByName</text>
+                    }
+                </span>
+            }
+            else
+            {
+                <span class="status-pill">À rapprocher</span>
+                <span class="text-muted small">
+                    @Model.Lines.Count(l => l.ReconcileStatus != InstalmentStatus.Pending) / @Model.Lines.Count ligne(s) marquée(s)
+                    — une ligne exclue se rapproche aussi (ex. payée en espèces).
+                </span>
+            }
+        </div>
+        <form id="reconcile-form" asp-action="SaveReconciliation" method="post">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <div class="table-responsive">
+                <table class="table table-dense align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>N° de compte</th>
+                            <th>Clé</th>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th class="text-end">Montant</th>
+                            <th>Statut selon la banque</th>
+                            <th>Rapproché le</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < Model.ReconcileInputs.Count; i++)
+                        {
+                            var line = Model.Lines.First(l => l.Id == Model.ReconcileInputs[i].LineId);
+                            <tr class="@(line.IsExcluded ? "table-secondary text-muted" : "")">
+                                <input type="hidden" asp-for="ReconcileInputs[i].LineId" />
+                                <td class="font-mono">@line.ClientAccountNumber</td>
+                                <td class="font-mono">@line.ClientAccountKey</td>
+                                <td>@line.ClientLastName</td>
+                                <td>@line.ClientFirstName</td>
+                                <td class="text-end font-mono fw-semibold">@line.Amount.ToDa()</td>
+                                <td>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio"
+                                               asp-for="ReconcileInputs[i].Status"
+                                               value="@InstalmentStatus.Pending" id="rec-@line.Id-p" />
+                                        <label class="form-check-label" for="rec-@line.Id-p">En attente</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio"
+                                               asp-for="ReconcileInputs[i].Status"
+                                               value="@InstalmentStatus.Paid" id="rec-@line.Id-paid" />
+                                        <label class="form-check-label" for="rec-@line.Id-paid">Payée</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio"
+                                               asp-for="ReconcileInputs[i].Status"
+                                               value="@InstalmentStatus.Failed" id="rec-@line.Id-f" />
+                                        <label class="form-check-label" for="rec-@line.Id-f">Échouée</label>
+                                    </div>
+                                </td>
+                                <td class="text-muted small text-nowrap">
+                                    @if (line.ReconciledAtUtc.HasValue)
+                                    {
+                                        <text>@line.ReconciledAtUtc.Value.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")</text>
+                                        @if (line.ReconciledByName is not null)
+                                        {
+                                            <text> · @line.ReconciledByName</text>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <text>—</text>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="text-muted small">Marquer toutes les lignes :</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm js-mark-all" data-status="Paid">Payées</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm js-mark-all" data-status="Failed">Échouées</button>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Enregistrer le rapprochement</button>
+            </div>
+        </form>
+    </div>
+}
+
+<script>
+    document.querySelectorAll('.js-mark-all').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var value = btn.dataset.status;
+            var form = document.getElementById('reconcile-form');
+            form.querySelectorAll('input[type=radio]').forEach(function (radio) {
+                radio.checked = radio.value === value;
+            });
+        });
+    });
+</script>

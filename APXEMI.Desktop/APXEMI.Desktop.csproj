@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <!-- Le package WebView2 référence aussi son assembly WPF, qui tire une
+         WindowsBase 5.0.0.0 en conflit (bénin) avec la 4.0.0.0 du runtime. -->
+    <NoWarn>$(NoWarn);MSB3277</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\APXEMI\APXEMI.csproj" />
+  </ItemGroup>
+
+  <!-- Le Web SDK ne copie pas wwwroot dans la sortie d'un projet référencé :
+       on le copie explicitement pour que le serveur embarqué trouve les
+       fichiers statiques (CSS/JS) au runtime et à la publication. -->
+  <ItemGroup>
+    <Content Include="..\APXEMI\wwwroot\**\*"
+             Link="wwwroot\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,34 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+publish/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+
+# Local database files
+*.db
+*.db-shm
+*.db-wal
+
+# Keys / secrets
+*.pem
+*.pfx
+*.key
+apxemi-keys/
+
+# AI-assisted development docs (root only; keep vendored wwwroot/lib/**/LICENSE.md)
+/AGENTS.md
+/SESSIONHANDOFF.MD
+/ISSUES.MD
+/DESIGN.MD
+/PRD_EMI_Inventory_System.md
+/OfflineAppGuide.md
+
+# OS junk
+Thumbs.db
+desktop.ini
+.DS_Store

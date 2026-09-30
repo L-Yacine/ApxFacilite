@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="APXEMI/APXEMI.csproj" />
+  <Project Path="APXEMI.Desktop/APXEMI.Desktop.csproj" />
+  <Project Path="LicenseGenerator/LicenseGenerator.csproj" />
+</Solution>

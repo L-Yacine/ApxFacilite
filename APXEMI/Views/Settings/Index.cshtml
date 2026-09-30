@@ -1,0 +1,70 @@
+@model StoreSettingsViewModel
+@{
+    ViewData["Title"] = "Paramètres";
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Paramètres</h1>
+    @if (Model.IsConfigured)
+    {
+        <span class="status-pill status-pill-active">Compte configuré</span>
+    }
+    else
+    {
+        <span class="status-pill status-pill-inactive">Non configuré</span>
+    }
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card landing-card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-uppercase text-muted">Compte du magasin (prélèvements)</h2>
+                <p class="text-muted small">
+                    Ce compte est repris automatiquement comme « Compte B / Clé B » sur chaque
+                    ligne de la fiche de prélèvement mensuelle, sans ressaisie.
+                </p>
+
+                <form asp-action="Index" method="post">
+                    <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="StoreAccountNumber" class="form-label"></label>
+                        <input asp-for="StoreAccountNumber" class="form-control font-mono" autocomplete="off"
+                               inputmode="numeric" placeholder="ex. 0012345678" />
+                        <span asp-validation-for="StoreAccountNumber" class="field-error"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="StoreAccountKey" class="form-label"></label>
+                        <input asp-for="StoreAccountKey" class="form-control font-mono" autocomplete="off"
+                               inputmode="numeric" maxlength="2" style="max-width: 6rem;" placeholder="ex. 45" />
+                        <span asp-validation-for="StoreAccountKey" class="field-error"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </form>
+
+                @if (Model.IsConfigured && Model.UpdatedAtUtc is { } updatedAt)
+                {
+                    <div class="form-text mt-3">
+                        Dernière modification le @updatedAt.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")
+                        @if (Model.UpdatedByName is not null)
+                        {
+                            <text>par @Model.UpdatedByName</text>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

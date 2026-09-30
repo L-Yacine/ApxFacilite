@@ -1,0 +1,107 @@
+@model EditUserViewModel
+@{
+    ViewData["Title"] = "Modifier l'utilisateur";
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Modifier l'utilisateur</h1>
+    @if (Model.IsActive)
+    {
+        <span class="status-pill status-pill-active">Actif</span>
+    }
+    else
+    {
+        <span class="status-pill status-pill-inactive">Désactivé</span>
+    }
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2">@error</div>
+}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card landing-card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-uppercase text-muted">Informations du compte</h2>
+                <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" autocomplete="off" />
+                        <span asp-validation-for="Name" class="field-error"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label"></label>
+                        <input asp-for="Username" class="form-control font-mono" autocomplete="off" />
+                        <span asp-validation-for="Username" class="field-error"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Role" class="form-label"></label>
+                        @if (Model.IsSelf)
+                        {
+                            @* Un Propriétaire ne peut pas changer son propre rôle. *@
+                            <input type="hidden" asp-for="Role" />
+                            <select class="form-select" disabled>
+                                <option selected>@Model.Role.ToFrench()</option>
+                            </select>
+                            <div class="form-text">Vous ne pouvez pas modifier votre propre rôle.</div>
+                        }
+                        else
+                        {
+                            <select asp-for="Role" class="form-select">
+                                <option value="@UserRole.Seller">@UserRole.Seller.ToFrench()</option>
+                                <option value="@UserRole.Owner">@UserRole.Owner.ToFrench()</option>
+                            </select>
+                        }
+                        <span asp-validation-for="Role" class="field-error"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Retour à la liste</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card landing-card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-uppercase text-muted">Réinitialiser le mot de passe</h2>
+                <form asp-action="ResetPassword" method="post">
+                    <input type="hidden" name="Id" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <label for="NewPassword" class="form-label">Nouveau mot de passe</label>
+                        <input type="password" id="NewPassword" name="NewPassword" class="form-control"
+                               autocomplete="new-password" minlength="8" required />
+                        <div class="form-text">8 caractères minimum.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ConfirmPassword" class="form-label">Confirmer le mot de passe</label>
+                        <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control"
+                               autocomplete="new-password" minlength="8" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-outline-danger">Réinitialiser le mot de passe</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

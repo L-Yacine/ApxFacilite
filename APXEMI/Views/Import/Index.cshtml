@@ -1,0 +1,47 @@
+@{
+    ViewData["Title"] = "Import de données";
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Import de données</h1>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2">@error</div>
+}
+
+<div class="form-text mb-3">
+    Import unique des données existantes (catalogue, fournisseurs, clients, plans de mensualités)
+    depuis un classeur Excel, pour ne rien ressaisir à la main. L'import est <strong>tout ou rien</strong> :
+    toute erreur dans le fichier bloque l'import complet, et un doublon (produit, fournisseur,
+    n° de compte) déjà présent en base est refusé.
+</div>
+
+<div class="card landing-card">
+    <div class="card-body">
+        <h2 class="h6 text-uppercase text-muted mb-2">Importer un classeur .xlsx</h2>
+        <div class="form-text mb-3">
+            Le classeur contient six feuilles : Produits (obligatoire), Fournisseurs, Clients,
+            Ventes, Lignes de vente et Échéancier (facultative — si absente, l'échéancier est
+            recalculé comme une nouvelle vente). Téléchargez le modèle vide pour connaître les
+            colonnes attendues.
+        </div>
+        <a asp-action="Template" class="btn btn-outline-secondary mb-3">Télécharger le modèle vide</a>
+        <form asp-action="Preview" method="post" enctype="multipart/form-data">
+            <div class="input-group" style="max-width: 560px;">
+                <input type="file" name="file" accept=".xlsx" class="form-control" required />
+                <button type="submit" class="btn btn-primary">Analyser le fichier</button>
+            </div>
+        </form>
+        <div class="form-text mt-2">
+            Formats attendus : dates JJ/MM/AAAA, montants en DA (150 000,00 ou 150000.00),
+            n° de compte 5 à 20 chiffres, clé 1 à 2 chiffres, téléphone 0X XX XX XX XX.
+            L'analyse affiche toutes les erreurs avant toute écriture en base.
+        </div>
+    </div>
+</div>

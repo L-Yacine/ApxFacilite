@@ -1,0 +1,371 @@
+﻿@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var authenticated = User.Identity?.IsAuthenticated == true;
+    var inSheet = controller == "Users" || controller == "Settings" || controller == "StockLedger" || controller == "Sales" || controller == "Clients" || controller == "Prelevements" || controller == "Catalog" || controller == "Import";
+    var roleLabel = User.IsInRole(nameof(UserRole.Owner)) ? "Propriétaire" : "Vendeur";
+    var userName = User.Identity?.Name ?? "";
+    var initials = string.Concat(userName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Select(p => p[0])
+        .Take(2))
+        .ToUpperInvariant();
+    if (initials.Length == 0)
+    {
+        initials = "U";
+    }
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - APXEMI</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/APXEMI.styles.css" asp-append-version="true" />
+</head>
+<body class="@(authenticated ? "sidebar-layout" : "")">
+    @if (authenticated)
+    {
+        <button class="sidebar-handle" id="sidebarCollapse" type="button"
+                aria-label="Replier le menu" aria-expanded="true" title="Replier le menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="11 17 6 12 11 7"></polyline>
+                <polyline points="18 17 13 12 18 7"></polyline>
+            </svg>
+        </button>
+        <aside class="sidebar" id="appSidebar">
+            <div class="sidebar-header">
+                <a class="sidebar-brand" asp-area="" asp-controller="Home" asp-action="Index" title="APXEMI — Tableau de bord">
+                    <span class="sidebar-brand-mark">A</span>
+                    <span class="sidebar-brand-text">
+                        <span class="sidebar-brand-name">APXEMI</span>
+                        <span class="sidebar-brand-sub">Gestion stock &amp; mensualités</span>
+                    </span>
+                </a>
+            </div>
+            <nav class="sidebar-nav" aria-label="Navigation principale">
+                <a class="sidebar-link @(controller == "Home" ? "active" : "")" asp-area="" asp-controller="Home" asp-action="Index" title="Tableau de bord">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                    </svg>
+                    <span class="sidebar-label">Tableau de bord</span>
+                </a>
+                <a class="sidebar-link @(controller == "Products" ? "active" : "")" asp-area="" asp-controller="Products" asp-action="Index" title="Produits">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <path d="M3.27 6.96 12 12.01l8.73-5.05"></path>
+                        <path d="M12 22.08V12"></path>
+                    </svg>
+                    <span class="sidebar-label">Produits</span>
+                </a>
+                <a class="sidebar-link @(controller == "Catalog" ? "active" : "")" asp-area="" asp-controller="Catalog" asp-action="Index" title="Catégories & marques">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m12 14-1 1"></path>
+                        <path d="m13.75 18-1 1"></path>
+                        <path d="M14 10.5a3.5 3.5 0 1 0-7 0c0 2 1 3.5 1.5 5 .3 1 .7 2 1.5 2.5 1.3 1 3.7 1 5-1.5 1.5-2.5 2.5-5.5 0-6Z"></path>
+                        <path d="M15 2.5a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0Z"></path>
+                        <path d="M18.5 2.5a3 3 0 0 1 1 4.5 3 3 0 0 1-4.5 1 3 3 0 0 1 3.5-5.5Z"></path>
+                    </svg>
+                    <span class="sidebar-label">Catégories &amp; marques</span>
+                </a>
+                <a class="sidebar-link @(controller == "Sales" ? "active" : "")" asp-area="" asp-controller="Sales" asp-action="Index" title="Ventes">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span class="sidebar-label">Ventes</span>
+                </a>
+                <a class="sidebar-link @(controller == "Clients" ? "active" : "")" asp-area="" asp-controller="Clients" asp-action="Index" title="Clients">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span class="sidebar-label">Clients</span>
+                </a>
+                <a class="sidebar-link @(controller == "Purchases" ? "active" : "")" asp-area="" asp-controller="Purchases" asp-action="Index" title="Achats">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+                        <path d="M15 18H9"></path>
+                        <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
+                        <circle cx="17" cy="18" r="2"></circle>
+                        <circle cx="7" cy="18" r="2"></circle>
+                    </svg>
+                    <span class="sidebar-label">Achats</span>
+                </a>
+                <a class="sidebar-link @(controller == "StockLedger" ? "active" : "")" asp-area="" asp-controller="StockLedger" asp-action="Index" title="Fiche de stock">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <span class="sidebar-label">Fiche de stock</span>
+                </a>
+                <a class="sidebar-link @(controller == "Prelevements" ? "active" : "")" asp-area="" asp-controller="Prelevements" asp-action="Index" title="Prélèvements">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m22 2-7 20-4-9-9-4Z"></path>
+                        <path d="M22 2 11 13"></path>
+                    </svg>
+                    <span class="sidebar-label">Prélèvements</span>
+                </a>
+                @if (User.IsInRole(nameof(UserRole.Owner)))
+                {
+                    <a class="sidebar-link @(controller == "Users" ? "active" : "")" asp-area="" asp-controller="Users" asp-action="Index" title="Utilisateurs">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span class="sidebar-label">Utilisateurs</span>
+                    </a>
+                    <a class="sidebar-link @(controller == "Settings" ? "active" : "")" asp-area="" asp-controller="Settings" asp-action="Index" title="Paramètres">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="4" y1="21" x2="4" y2="14"></line>
+                            <line x1="4" y1="10" x2="4" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12" y2="3"></line>
+                            <line x1="20" y1="21" x2="20" y2="16"></line>
+                            <line x1="20" y1="12" x2="20" y2="3"></line>
+                            <line x1="1" y1="14" x2="7" y2="14"></line>
+                            <line x1="9" y1="8" x2="15" y2="8"></line>
+                            <line x1="17" y1="16" x2="23" y2="16"></line>
+                        </svg>
+                        <span class="sidebar-label">Paramètres</span>
+                    </a>
+                    <a class="sidebar-link @(controller == "Import" ? "active" : "")" asp-area="" asp-controller="Import" asp-action="Index" title="Import de données">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <span class="sidebar-label">Import</span>
+                    </a>
+                }
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <span class="sidebar-user-avatar">@initials</span>
+                    <div class="sidebar-user-info">
+                        <span class="sidebar-user-name">@userName</span>
+                        <span class="role-pill">@roleLabel</span>
+                    </div>
+                </div>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="sidebar-logout" title="Se déconnecter">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span class="sidebar-label">Se déconnecter</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+        <nav class="bottom-nav" aria-label="Navigation principale">
+            <a class="bottom-nav-link @(controller == "Home" ? "active" : "")" asp-area="" asp-controller="Home" asp-action="Index">
+                <span class="bottom-nav-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                    </svg>
+                </span>
+                <span class="bottom-nav-label">Tableau de bord</span>
+            </a>
+            <a class="bottom-nav-link @(controller == "Products" ? "active" : "")" asp-area="" asp-controller="Products" asp-action="Index">
+                <span class="bottom-nav-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <path d="M3.27 6.96 12 12.01l8.73-5.05"></path>
+                        <path d="M12 22.08V12"></path>
+                    </svg>
+                </span>
+                <span class="bottom-nav-label">Produits</span>
+            </a>
+            <a class="bottom-nav-link @(controller == "Purchases" ? "active" : "")" asp-area="" asp-controller="Purchases" asp-action="Index">
+                <span class="bottom-nav-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+                        <path d="M15 18H9"></path>
+                        <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
+                        <circle cx="17" cy="18" r="2"></circle>
+                        <circle cx="7" cy="18" r="2"></circle>
+                    </svg>
+                </span>
+                <span class="bottom-nav-label">Achats</span>
+            </a>
+            <button class="bottom-nav-link @(inSheet ? "active" : "")" id="bottomMore" type="button"
+                    aria-haspopup="true" aria-expanded="false" aria-controls="bottomSheet">
+                <span class="bottom-nav-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <circle cx="19" cy="12" r="1"></circle>
+                        <circle cx="5" cy="12" r="1"></circle>
+                    </svg>
+                </span>
+                <span class="bottom-nav-label">Plus</span>
+            </button>
+        </nav>
+        <div class="bottom-sheet-backdrop" id="bottomSheetBackdrop"></div>
+        <section class="bottom-sheet" id="bottomSheet" role="dialog" aria-modal="true" aria-labelledby="bottomSheetTitle" aria-hidden="true">
+            <div class="bottom-sheet-header">
+                <h2 class="bottom-sheet-title" id="bottomSheetTitle">Menu</h2>
+                <button class="bottom-sheet-close" id="bottomSheetClose" type="button" aria-label="Fermer le menu" title="Fermer le menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="bottom-sheet-body">
+                <a class="bottom-sheet-link @(controller == "Sales" ? "active" : "")" asp-area="" asp-controller="Sales" asp-action="Index">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span>Ventes</span>
+                </a>
+                <a class="bottom-sheet-link @(controller == "Clients" ? "active" : "")" asp-area="" asp-controller="Clients" asp-action="Index">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Clients</span>
+                </a>
+                <a class="bottom-sheet-link @(controller == "StockLedger" ? "active" : "")" asp-area="" asp-controller="StockLedger" asp-action="Index">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <span>Fiche de stock</span>
+                </a>
+                <a class="bottom-sheet-link @(controller == "Catalog" ? "active" : "")" asp-area="" asp-controller="Catalog" asp-action="Index">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m12 14-1 1"></path>
+                        <path d="m13.75 18-1 1"></path>
+                        <path d="M14 10.5a3.5 3.5 0 1 0-7 0c0 2 1 3.5 1.5 5 .3 1 .7 2 1.5 2.5 1.3 1 3.7 1 5-1.5 1.5-2.5 2.5-5.5 0-6Z"></path>
+                        <path d="M15 2.5a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0Z"></path>
+                        <path d="M18.5 2.5a3 3 0 0 1 1 4.5 3 3 0 0 1-4.5 1 3 3 0 0 1 3.5-5.5Z"></path>
+                    </svg>
+                    <span>Catégories &amp; marques</span>
+                </a>
+                <a class="bottom-sheet-link @(controller == "Prelevements" ? "active" : "")" asp-area="" asp-controller="Prelevements" asp-action="Index">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m22 2-7 20-4-9-9-4Z"></path>
+                        <path d="M22 2 11 13"></path>
+                    </svg>
+                    <span>Prélèvements</span>
+                </a>
+                @if (User.IsInRole(nameof(UserRole.Owner)))
+                {
+                    <a class="bottom-sheet-link @(controller == "Users" ? "active" : "")" asp-area="" asp-controller="Users" asp-action="Index">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>Utilisateurs</span>
+                    </a>
+                    <a class="bottom-sheet-link @(controller == "Settings" ? "active" : "")" asp-area="" asp-controller="Settings" asp-action="Index">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="4" y1="21" x2="4" y2="14"></line>
+                            <line x1="4" y1="10" x2="4" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12" y2="3"></line>
+                            <line x1="20" y1="21" x2="20" y2="16"></line>
+                            <line x1="20" y1="12" x2="20" y2="3"></line>
+                            <line x1="1" y1="14" x2="7" y2="14"></line>
+                            <line x1="9" y1="8" x2="15" y2="8"></line>
+                            <line x1="17" y1="16" x2="23" y2="16"></line>
+                        </svg>
+                        <span>Paramètres</span>
+                    </a>
+                    <a class="bottom-sheet-link @(controller == "Import" ? "active" : "")" asp-area="" asp-controller="Import" asp-action="Index">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <span>Import</span>
+                    </a>
+                }
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="bottom-sheet-link bottom-sheet-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Se déconnecter</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+    }
+
+    <main class="@(authenticated ? "app-main" : "")" role="main">
+        @if (authenticated)
+        {
+            <div class="container-fluid app-content px-4 py-3">
+                @RenderBody()
+            </div>
+        }
+        else
+        {
+            <div class="container py-4">
+                @RenderBody()
+            </div>
+        }
+        <footer class="border-top footer text-muted">
+            <div class="container">
+                &copy; 2026 APXEMI — Gestion de stock &amp; mensualités
+            </div>
+        </footer>
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

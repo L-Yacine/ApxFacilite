@@ -1,0 +1,113 @@
+@model PurchaseIndexViewModel
+@{
+    ViewData["Title"] = "Achats";
+    var hasFilters = Model.SupplierId.HasValue || Model.ProductId.HasValue
+        || Model.DateFrom.HasValue || Model.DateTo.HasValue;
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Achats fournisseurs</h1>
+    <a asp-action="Create" class="btn btn-primary btn-sm ms-auto">Nouvel achat</a>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+
+<div class="card landing-card mb-3">
+    <div class="card-body py-2">
+        <form asp-action="Index" method="get" class="row g-2 align-items-end">
+            <div class="col-sm-3">
+                <label for="supplierId" class="form-label mb-1">Fournisseur</label>
+                <select name="supplierId" id="supplierId" class="form-select form-select-sm">
+                    <option value="">Tous</option>
+                    @foreach (var s in Model.Suppliers)
+                    {
+                        <option value="@s.Id" selected="@(Model.SupplierId == s.Id)">@s.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-3">
+                <label for="productId" class="form-label mb-1">Produit</label>
+                <select name="productId" id="productId" class="form-select form-select-sm">
+                    <option value="">Tous</option>
+                    @foreach (var p in Model.Products)
+                    {
+                        <option value="@p.Id" selected="@(Model.ProductId == p.Id)">@p.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-2">
+                <label asp-for="DateFrom" class="form-label mb-1"></label>
+                <input asp-for="DateFrom" class="form-control form-select-sm" type="date" />
+            </div>
+            <div class="col-sm-2">
+                <label asp-for="DateTo" class="form-label mb-1"></label>
+                <input asp-for="DateTo" class="form-control form-select-sm" type="date" />
+            </div>
+            <div class="col-sm-2 d-flex gap-2">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Filtrer</button>
+                @if (hasFilters)
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Réinitialiser</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card landing-card">
+    @if (Model.Purchases.Count == 0)
+    {
+        <div class="card-body text-muted">
+            @(hasFilters
+                ? "Aucun achat ne correspond à ces filtres."
+                : "Aucun achat pour le moment — enregistrez le premier avec « Nouvel achat ».")
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-dense table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Fournisseur</th>
+                        <th>N° facture</th>
+                        <th>Règlement</th>
+                        <th class="text-end">Lignes</th>
+                        <th class="text-end">Quantité</th>
+                        <th class="text-end">Montant</th>
+                        <th>Saisi par</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Purchases)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@p.InvoiceDate.ToString("dd/MM/yyyy")</td>
+                            <td class="fw-semibold">@p.SupplierName</td>
+                            <td>@p.InvoiceNumber</td>
+                            <td>
+                                @p.PaymentMethod.ToFrenchLabel()
+                                @if (p.PaymentMethod == PurchasePaymentMethod.Cheque && p.CheckNumber is not null)
+                                {
+                                    <span class="text-muted font-mono">n° @p.CheckNumber</span>
+                                }
+                            </td>
+                            <td class="text-end font-mono">@p.LineCount</td>
+                            <td class="text-end font-mono">@p.TotalQuantity</td>
+                            <td class="text-end font-mono">@p.TotalAmount.ToDa()</td>
+                            <td class="text-muted">@(p.CreatedByName ?? "—")</td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-outline-secondary btn-sm">Détails</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

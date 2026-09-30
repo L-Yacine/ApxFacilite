@@ -1,0 +1,96 @@
+@model List<ProductListItemViewModel>
+@{
+    ViewData["Title"] = "Produits";
+    var isOwner = User.IsInRole(nameof(UserRole.Owner));
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Produits</h1>
+    <a asp-action="Create" class="btn btn-primary btn-sm ms-auto">Nouveau produit</a>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2">@error</div>
+}
+
+<div class="card landing-card">
+    @if (Model.Count == 0)
+    {
+        <div class="card-body text-muted">
+            Aucun produit pour le moment — ajoutez le premier avec « Nouveau produit ».
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-dense table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Catégorie</th>
+                        <th>Marque</th>
+                        <th class="text-end">Coût unitaire</th>
+                        <th class="text-end">Prix de vente</th>
+                        <th class="text-end" title="Calculé automatiquement à partir des achats et des ventes">Stock</th>
+                        <th>Statut</th>
+                        @if (isOwner)
+                        {
+                            <th class="text-end">Actions</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@p.Name</td>
+                            <td>@p.CategoryName</td>
+                            <td>@p.BrandName</td>
+                            <td class="text-end font-mono">@p.UnitCost.ToDa()</td>
+                            <td class="text-end font-mono">@p.UnitSalePrice.ToDa()</td>
+                            <td class="text-end font-mono"
+                                title="Calculé automatiquement à partir des achats et des ventes — jamais modifiable à la main">
+                                @p.CurrentStockQuantity
+                            </td>
+                            <td>
+                                @if (p.IsActive)
+                                {
+                                    <span class="status-pill status-pill-active">Actif</span>
+                                }
+                                else
+                                {
+                                    <span class="status-pill status-pill-inactive">Retiré</span>
+                                }
+                            </td>
+                            @if (isOwner)
+                            {
+                                <td class="text-end text-nowrap">
+                                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-outline-secondary btn-sm">Modifier</a>
+                                    <form asp-action="ToggleActive" asp-route-id="@p.Id" method="post" class="d-inline"
+                                          data-confirm="@(p.IsActive
+                                              ? $"Retirer le produit « {p.Name} » ? Il ne sera plus proposé lors des nouveaux achats ou ventes, mais restera visible sur l'historique."
+                                              : $"Réactiver le produit « {p.Name} » ?")"
+                                          onsubmit="return confirm(this.dataset.confirm);">
+                                        @if (p.IsActive)
+                                        {
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Retirer</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-outline-success btn-sm">Réactiver</button>
+                                        }
+                                    </form>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

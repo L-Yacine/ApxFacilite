@@ -1,0 +1,27 @@
+CONTRAT DE LICENCE D'UTILISATEUR FINAL — APXEMI
+
+En installant ou en utilisant le logiciel APXEMI (le « Logiciel »), vous acceptez les conditions du présent contrat.
+
+1. OCTROI DE LICENCE
+APXEMI vous accorde une licence non exclusive, non cessible et non transférable d'utiliser le Logiciel sur UN (1) seul ordinateur (le « poste ») pour lequel un code d'activation valide a été émis. La licence est perpétuelle pour ce poste, sauf résiliation conformément à l'article 6.
+
+2. ACTIVATION
+Le Logiciel est lié au poste par un identifiant matériel. L'utilisation nécessite un code d'activation fourni par APXEMI. Toute nouvelle installation sur un autre poste nécessite un nouveau code d'activation. Vous vous engagez à ne pas demander de codes d'activation pour des postes non couverts par votre licence.
+
+3. RESTRICTIONS
+Vous ne devez pas :
+(a) copier, distribuer, louer, prêter ou mettre à disposition le Logiciel ou son programme d'installation à des tiers ;
+(b) modifier, désosser, décompiler ou contourner les mécanismes de licence ou de protection du Logiciel ;
+(c) utiliser le Logiciel sur plus de postes que ce qui est autorisé par votre licence.
+
+4. DONNÉES
+Le Logiciel stocke ses données localement sur le poste (base SQLite). Vous êtes seul responsable de la sauvegarde de vos données. APXEMI ne peut être tenu responsable de toute perte de données.
+
+5. GARANTIE
+Le Logiciel est fourni « en l'état », sans garantie d'aucune sorte, expresse ou implicite, notamment sans garantie d'adéquation à un usage particulier ou de non-contrefaçon.
+
+6. RÉSILIATION
+Ce contrat prend fin si vous en violez les conditions. À la résiliation, vous devez cesser d'utiliser le Logiciel et le désinstaller.
+
+7. DROIT APPLICABLE
+Le présent contrat est régi par le droit algérien.

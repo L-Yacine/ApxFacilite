@@ -1,0 +1,198 @@
+@model SaleDetailsViewModel
+@{
+    ViewData["Title"] = "Vente n° " + Model.Id;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="h4 mb-1">Vente n° @Model.Id — @Model.ClientFullName</h1>
+        @if (Model.Status == InstalmentPlanStatus.Active)
+        {
+            <span class="status-pill status-pill-active">@Model.Status.ToFrenchLabel()</span>
+        }
+        else if (Model.Status == InstalmentPlanStatus.Voided)
+        {
+            <span class="status-pill status-pill-inactive">@Model.Status.ToFrenchLabel()</span>
+        }
+        else
+        {
+            <span class="status-pill">@Model.Status.ToFrenchLabel()</span>
+        }
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm ms-auto">Retour aux ventes</a>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2">@error</div>
+}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="card landing-card h-100">
+            <div class="card-body">
+                <h2 class="h6">Client</h2>
+                <div class="fw-semibold fs-5">@Model.ClientFullName</div>
+                <div class="text-muted font-mono mt-1">Compte : @Model.ClientAccountNumber — Clé : @Model.ClientAccountKey</div>
+                @if (!string.IsNullOrEmpty(Model.ClientPhoneDisplay))
+                {
+                    <div class="text-muted font-mono">Tél : @Model.ClientPhoneDisplay</div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card landing-card h-100">
+            <div class="card-body">
+                <h2 class="h6">Plan de mensualités</h2>
+                <div class="row g-2">
+                    <div class="col-sm-4">
+                        <span class="text-muted d-block">Date de vente</span>
+                        <span class="font-mono">@Model.SaleDate.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="text-muted d-block">Montant total</span>
+                        <span class="font-mono">@Model.TotalAmount.ToDa()</span>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="text-muted d-block">Acompte</span>
+                        <span class="font-mono">@Model.DownPayment.ToDa()</span>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="text-muted d-block">Montant financé</span>
+                        <span class="font-mono fw-semibold">@Model.FinancedAmount.ToDa()</span>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="text-muted d-block">Mensualités</span>
+                        <span class="font-mono">@Model.NumberOfInstalments &times; @Model.InstalmentAmount.ToDa()</span>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="text-muted d-block">Saisi par</span>
+                        <span>@(Model.CreatedByName ?? "—")</span>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="text-muted d-block">Payé à ce jour</span>
+                        <span class="font-mono">@Model.AmountPaid.ToDa()</span>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="text-muted d-block">Reste à payer</span>
+                        <span class="font-mono fw-semibold">@Model.AmountRemaining.ToDa()</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card landing-card mb-3">
+    <div class="card-body pb-0">
+        <h2 class="h6">Produits vendus</h2>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-dense align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th class="text-end">Quantité</th>
+                    <th class="text-end">Prix unitaire</th>
+                    <th class="text-end">Total</th>
+                    <th class="text-end">Stock avant</th>
+                    <th class="text-end">Stock après</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var l in Model.Lines)
+                {
+                    <tr>
+                        <td class="fw-semibold">@l.ProductName</td>
+                        <td class="text-end font-mono">@l.Quantity</td>
+                        <td class="text-end font-mono">@l.UnitPrice.ToDa()</td>
+                        <td class="text-end font-mono">@l.LineTotal.ToDa()</td>
+                        <td class="text-end font-mono">@l.QuantityBefore</td>
+                        <td class="text-end font-mono">@l.QuantityAfter</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-end fw-semibold">Total de la vente</td>
+                    <td class="text-end font-mono fw-semibold">@Model.TotalAmount.ToDa()</td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+@if (Model.CanSettleEarly)
+{
+    <div class="card landing-card mb-3">
+        <div class="card-body">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="flex-grow-1">
+                    <h2 class="h6 mb-1">Solde anticipé</h2>
+                    <p class="text-muted small mb-0">
+                        Le client règle en une fois le reste du plan —
+                        <span class="font-mono fw-semibold">@Model.RemainingSettlementAmount.ToDa()</span>
+                        (@Model.RemainingInstalmentCount mensualité(s) restante(s)).
+                        Le contrat est clôturé et ces mensualités ne seront plus prélevées.
+                    </p>
+                </div>
+                <form asp-action="SettleEarly" asp-route-id="@Model.Id" method="post" class="ms-auto"
+                      onsubmit="return confirm('Clôturer le plan ? Le client règle @Model.RemainingSettlementAmount.ToDa() en une fois — @Model.RemainingInstalmentCount mensualité(s) passée(s) à Payée. Cette action est définitive.');">
+                    <button type="submit" class="btn btn-primary">Clôturer le plan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="card landing-card">
+    <div class="card-body pb-0">
+        <h2 class="h6">Calendrier des mensualités</h2>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-dense align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="text-end" style="width: 8%;">N°</th>
+                    <th>Échéance</th>
+                    <th>Référence</th>
+                    <th class="text-end">Montant</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (var j = 0; j < Model.Instalments.Count; j++)
+                {
+                    var inst = Model.Instalments[j];
+                    <tr>
+                        <td class="text-end font-mono">@(j + 1)</td>
+                        <td class="font-mono">@inst.DueDate.ToString("dd/MM/yyyy")</td>
+                        <td class="font-mono text-muted">@inst.ReferenceMonth</td>
+                        <td class="text-end font-mono">@inst.Amount.ToDa()</td>
+                        <td>
+                            @if (inst.Status == InstalmentStatus.Paid)
+                            {
+                                <span class="status-pill status-pill-active">@inst.Status.ToFrenchLabel()</span>
+                            }
+                            else if (inst.Status == InstalmentStatus.Failed)
+                            {
+                                <span class="status-pill status-pill-inactive">@inst.Status.ToFrenchLabel()</span>
+                            }
+                            else
+                            {
+                                <span class="status-pill">@inst.Status.ToFrenchLabel()</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

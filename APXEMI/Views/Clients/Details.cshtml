@@ -1,0 +1,108 @@
+@model ClientDetailsViewModel
+@{
+    ViewData["Title"] = "Fiche client — " + Model.FullName;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="h4 mb-1">Fiche client — @Model.FullName</h1>
+        <span class="text-muted small">
+            @Model.Plans.Count plan(s) au total — @Model.ActivePlanCount en cours
+        </span>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm ms-auto">Retour aux clients</a>
+</div>
+
+<div class="card landing-card mb-3">
+    <div class="card-body">
+        <h2 class="h6">Coordonnées</h2>
+        <div class="row g-2">
+            <div class="col-sm-3">
+                <span class="text-muted d-block">N° de compte</span>
+                <span class="font-mono">@Model.AccountNumber</span>
+            </div>
+            <div class="col-sm-3">
+                <span class="text-muted d-block">Clé</span>
+                <span class="font-mono">@Model.AccountKey</span>
+            </div>
+            <div class="col-sm-3">
+                <span class="text-muted d-block">Téléphone</span>
+                <span class="font-mono">@(Model.PhoneDisplay ?? "—")</span>
+            </div>
+            <div class="col-sm-3">
+                <span class="text-muted d-block">N° de dossier</span>
+                <span class="font-mono">@(Model.DossierNumber ?? "—")</span>
+            </div>
+            <div class="col-sm-3">
+                <span class="text-muted d-block">Client depuis le</span>
+                <span class="font-mono">@Model.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy")</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card landing-card">
+    <div class="card-body pb-0">
+        <h2 class="h6">Plans de mensualités</h2>
+    </div>
+    @if (Model.Plans.Count == 0)
+    {
+        <div class="card-body text-muted">
+            Aucun plan pour ce client — enregistrez une vente pour créer le premier.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-dense table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-end" style="width: 8%;">N°</th>
+                        <th>Date de vente</th>
+                        <th>Produits</th>
+                        <th class="text-end">Total</th>
+                        <th class="text-end">Mensualités</th>
+                        <th class="text-end">Payé</th>
+                        <th class="text-end">Reste</th>
+                        <th>Statut</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Plans)
+                    {
+                        <tr>
+                            <td class="text-end font-mono">@p.PlanId</td>
+                            <td class="text-nowrap">@p.SaleDate.ToString("dd/MM/yyyy")</td>
+                            <td class="text-muted small">@p.Products</td>
+                            <td class="text-end font-mono">@p.TotalAmount.ToDa()</td>
+                            <td class="text-end font-mono">@p.NumberOfInstalments &times; @p.InstalmentAmount.ToDa()</td>
+                            <td class="text-end font-mono">@p.AmountPaid.ToDa()</td>
+                            <td class="text-end font-mono fw-semibold">@p.AmountRemaining.ToDa()</td>
+                            <td>
+                                @if (p.Status == InstalmentPlanStatus.Active)
+                                {
+                                    <span class="status-pill status-pill-active">@p.Status.ToFrenchLabel()</span>
+                                }
+                                else if (p.Status == InstalmentPlanStatus.Voided)
+                                {
+                                    <span class="status-pill status-pill-inactive">@p.Status.ToFrenchLabel()</span>
+                                }
+                                else
+                                {
+                                    <span class="status-pill">@p.Status.ToFrenchLabel()</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="ExportFiche" asp-route-planId="@p.PlanId"
+                                   class="btn btn-primary btn-sm">Fiche client</a>
+                                <a asp-controller="Sales" asp-action="Details" asp-route-id="@p.PlanId"
+                                   class="btn btn-outline-secondary btn-sm">Vente</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

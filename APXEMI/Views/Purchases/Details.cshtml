@@ -1,0 +1,90 @@
+@model PurchaseDetailsViewModel
+@{
+    ViewData["Title"] = $"Achat n° {Model.Id}";
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Achat — facture n° @Model.InvoiceNumber</h1>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm ms-auto">Retour aux achats</a>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+
+<div class="card landing-card mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Fournisseur</dt>
+            <dd class="col-sm-9">
+                @Model.SupplierName
+                @if (Model.SupplierPhone is not null)
+                {
+                    <span class="text-muted font-mono">— @Model.SupplierPhone</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">N° de facture</dt>
+            <dd class="col-sm-9">@Model.InvoiceNumber</dd>
+
+            <dt class="col-sm-3">Date de facture</dt>
+            <dd class="col-sm-9">@Model.InvoiceDate.ToString("dd/MM/yyyy")</dd>
+
+            <dt class="col-sm-3">Règlement</dt>
+            <dd class="col-sm-9">
+                @Model.PaymentMethod.ToFrenchLabel()
+                @if (Model.PaymentMethod == PurchasePaymentMethod.Cheque && Model.CheckNumber is not null)
+                {
+                    <span class="text-muted font-mono">— chèque n° @Model.CheckNumber</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Saisie</dt>
+            <dd class="col-sm-9 text-muted">
+                @(Model.CreatedByName ?? "—"), le @Model.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card landing-card">
+    <div class="table-responsive">
+        <table class="table table-dense align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th class="text-end">Quantité</th>
+                    <th class="text-end">Coût unitaire</th>
+                    <th class="text-end">Total</th>
+                    <th class="text-end" title="Calculé par le système à l'enregistrement — jamais saisi à la main">Stock avant</th>
+                    <th class="text-end" title="Calculé par le système à l'enregistrement — jamais saisi à la main">Stock après</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var l in Model.Lines)
+                {
+                    <tr>
+                        <td class="fw-semibold">@l.ProductName</td>
+                        <td class="text-end font-mono">@l.Quantity</td>
+                        <td class="text-end font-mono">@l.UnitCost.ToDa()</td>
+                        <td class="text-end font-mono">@l.LineTotal.ToDa()</td>
+                        <td class="text-end font-mono"
+                            title="Calculé par le système à l'enregistrement — jamais saisi à la main">@l.QuantityBefore</td>
+                        <td class="text-end font-mono fw-semibold"
+                            title="Calculé par le système à l'enregistrement — jamais saisi à la main">@l.QuantityAfter</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td class="fw-semibold">Total</td>
+                    <td class="text-end font-mono fw-semibold">@Model.TotalQuantity</td>
+                    <td></td>
+                    <td class="text-end font-mono fw-semibold">@Model.TotalAmount.ToDa()</td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>

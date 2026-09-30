@@ -1,0 +1,74 @@
+@model CreateProductViewModel
+@{
+    ViewData["Title"] = "Nouveau produit";
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Nouveau produit</h1>
+</div>
+
+<div class="card landing-card">
+    <div class="card-body" style="max-width: 480px;">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" autocomplete="off" autofocus
+                       placeholder="Ex. : Réfrigérateur Samsung T2" />
+                <span asp-validation-for="Name" class="field-error"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="CategoryId" class="form-label"></label>
+                <div class="input-group">
+                    <select asp-for="CategoryId" asp-items="Model.CategoryOptions" class="form-select">
+                        <option value="">— Sélectionner —</option>
+                    </select>
+                    <a asp-controller="Catalog" asp-action="CreateCategory" class="btn btn-outline-secondary"
+                       title="Ajouter une catégorie" aria-label="Ajouter une catégorie">+</a>
+                </div>
+                <span asp-validation-for="CategoryId" class="field-error"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="BrandId" class="form-label"></label>
+                <div class="input-group">
+                    <select asp-for="BrandId" asp-items="Model.BrandOptions" class="form-select">
+                        <option value="">— Sélectionner —</option>
+                    </select>
+                    <a asp-controller="Catalog" asp-action="CreateBrand" class="btn btn-outline-secondary"
+                       title="Ajouter une marque" aria-label="Ajouter une marque">+</a>
+                </div>
+                <span asp-validation-for="BrandId" class="field-error"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="UnitCost" class="form-label"></label>
+                <input asp-for="UnitCost" class="form-control font-mono" type="number" step="0.01" min="0"
+                       inputmode="decimal" autocomplete="off" />
+                <span asp-validation-for="UnitCost" class="field-error"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="UnitSalePrice" class="form-label"></label>
+                <input asp-for="UnitSalePrice" class="form-control font-mono" type="number" step="0.01" min="0"
+                       inputmode="decimal" autocomplete="off" />
+                <span asp-validation-for="UnitSalePrice" class="field-error"></span>
+            </div>
+
+            <div class="form-text mb-3">
+                Le stock démarre à 0 et sera mis à jour automatiquement par les achats et les ventes.
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Ajouter le produit</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

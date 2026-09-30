@@ -1,0 +1,81 @@
+@model ClientIndexViewModel
+@{
+    ViewData["Title"] = "Clients";
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Clients</h1>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+
+<div class="card landing-card mb-3">
+    <div class="card-body py-2">
+        <form asp-action="Index" method="get" class="row g-2 align-items-end">
+            <div class="col-sm-6">
+                <label asp-for="Q" class="form-label mb-1"></label>
+                <input asp-for="Q" class="form-control form-control-sm" autocomplete="off"
+                       placeholder="Nom, prénom, téléphone ou n° de compte" />
+            </div>
+            <div class="col-sm-3 d-flex gap-2">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Rechercher</button>
+                @if (!string.IsNullOrEmpty(Model.Q))
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Réinitialiser</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card landing-card">
+    @if (Model.Clients.Count == 0)
+    {
+        <div class="card-body text-muted">
+            @(string.IsNullOrEmpty(Model.Q)
+                ? "Renseignez une recherche pour trouver un client — nom, prénom, téléphone ou n° de compte."
+                : "Aucun client ne correspond à cette recherche.")
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-dense table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Compte</th>
+                        <th>Téléphone</th>
+                        <th class="text-end">Plans</th>
+                        <th class="text-end">En cours</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model.Clients)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@c.FullName</td>
+                            <td class="font-mono">@c.AccountNumber</td>
+                            <td class="font-mono">@(c.PhoneDisplay ?? "—")</td>
+                            <td class="text-end font-mono">@c.PlanCount</td>
+                            <td class="text-end font-mono">@c.ActivePlanCount</td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@c.Id" class="btn btn-outline-secondary btn-sm">Fiche client</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (string.IsNullOrEmpty(Model.Q) && Model.Clients.Count == 100)
+        {
+            <div class="card-body pt-0 text-muted small">
+                Les 100 premiers clients sont affichés — affinez votre recherche pour en trouver d'autres.
+            </div>
+        }
+    }
+</div>

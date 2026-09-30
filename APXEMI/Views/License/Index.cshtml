@@ -1,0 +1,52 @@
+@model LicenseViewModel
+@{
+    ViewData["Title"] = "Activation";
+}
+
+<div class="login-page">
+    <div class="login-card">
+        <h1 class="login-brand">APXEMI</h1>
+        <p class="login-subtitle">Activation de la licence</p>
+
+        @if (TempData["Error"] is string error)
+        {
+            <div class="alert alert-danger py-2">@error</div>
+        }
+        @if (TempData["Success"] is string success)
+        {
+            <div class="alert alert-success py-2">@success</div>
+        }
+
+        @if (Model.IsActivated)
+        {
+            <div class="alert alert-success py-2">
+                Licence active — @(Model.Licensee ?? "licencié inconnu")
+            </div>
+            <a class="btn btn-primary w-100" asp-controller="Account" asp-action="Login">Continuer vers la connexion</a>
+        }
+        else
+        {
+            @if (!Model.IsConfigured)
+            {
+                <div class="alert alert-warning py-2">
+                    La clé publique de licence n'est pas configurée sur ce poste. Contactez l'éditeur.
+                </div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label">Identifiant du poste</label>
+                <div class="form-control font-mono" style="user-select: all;">@Model.MachineId</div>
+                <div class="form-text">Envoyez cet identifiant à votre fournisseur pour recevoir votre code d'activation.</div>
+            </div>
+
+            <form asp-action="Activate" method="post">
+                <div class="mb-3">
+                    <label for="code" class="form-label">Code d'activation</label>
+                    <input type="text" id="code" name="code" class="form-control font-mono"
+                           autocomplete="off" spellcheck="false" autofocus />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Activer</button>
+            </form>
+        }
+    </div>
+</div>

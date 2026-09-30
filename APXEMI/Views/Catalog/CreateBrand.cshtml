@@ -1,0 +1,32 @@
+@model CreateBrandViewModel
+@{
+    ViewData["Title"] = "Nouvelle marque";
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Nouvelle marque</h1>
+</div>
+
+<div class="card landing-card">
+    <div class="card-body" style="max-width: 480px;">
+        <form asp-action="CreateBrand" method="post">
+            <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" autocomplete="off" autofocus
+                       placeholder="Ex. : Samsung, LG, Condor, Brandt…" />
+                <span asp-validation-for="Name" class="field-error"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Ajouter la marque</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

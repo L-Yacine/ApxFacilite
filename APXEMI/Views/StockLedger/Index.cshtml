@@ -1,0 +1,128 @@
+@model StockLedgerIndexViewModel
+@{
+    ViewData["Title"] = "Fiche de stock";
+    var hasProduct = Model.ProductName is not null;
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Fiche de stock</h1>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2">@error</div>
+}
+
+<div class="card landing-card mb-3">
+    <div class="card-body py-2">
+        <form asp-action="Index" method="get" class="row g-2 align-items-end">
+            <div class="col-sm-6">
+                <label for="productId" class="form-label mb-1">Produit</label>
+                <select name="productId" id="productId" class="form-select form-select-sm" required>
+                    <option value="" disabled selected="@(Model.SelectedProductId is null)">Choisir un produit…</option>
+                    @foreach (var p in Model.Products)
+                    {
+                        <option value="@p.Id" selected="@(Model.SelectedProductId == p.Id)">@p.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-6">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Afficher la fiche</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!hasProduct)
+{
+    <div class="card landing-card">
+        <div class="card-body text-muted">
+            Choisissez un produit pour consulter son grand livre de stock.
+        </div>
+    </div>
+}
+else
+{
+    <div class="card landing-card">
+        <div class="card-body py-2">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div>
+                    <h2 class="h5 mb-1">@Model.ProductName</h2>
+                    <div class="text-muted small">
+                        Stock actuel :
+                        <span class="font-mono fw-semibold @(Model.CurrentStockQuantity <= 0 ? "text-danger" : "")">
+                            @Model.CurrentStockQuantity
+                        </span>
+                        @if (Model.Movements.Count == 0)
+                        {
+                            <span>— aucun mouvement pour le moment.</span>
+                        }
+                        else
+                        {
+                            <span>— @Model.Movements.Count mouvement(s).</span>
+                        }
+                    </div>
+                </div>
+                @if (Model.Movements.Count > 0)
+                {
+                    <a asp-action="Export" asp-route-id="@Model.SelectedProductId"
+                       class="btn btn-primary btn-sm ms-auto">
+                        Exporter en Excel
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="card landing-card">
+        @if (Model.Movements.Count == 0)
+        {
+            <div class="card-body text-muted">
+                Aucun mouvement de stock pour ce produit — enregistrez un achat pour créer la première entrée.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-dense table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th class="text-end">Qté avant</th>
+                            <th>Type d'opération</th>
+                            <th>Opérateur</th>
+                            <th class="text-end">Qté après</th>
+                            <th>Observation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in Model.Movements)
+                        {
+                            <tr>
+                                <td class="text-nowrap">@m.MovementDate.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end font-mono">@m.QuantityBefore</td>
+                                <td>
+                                    @if (m.Type == StockMovementType.In)
+                                    {
+                                        <span class="status-pill status-pill-active">Entrée</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill status-pill-inactive">Sortie</span>
+                                    }
+                                </td>
+                                <td>@m.OperatorName</td>
+                                <td class="text-end font-mono fw-semibold">@m.QuantityAfter</td>
+                                <td class="text-muted">@(m.Observation ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}

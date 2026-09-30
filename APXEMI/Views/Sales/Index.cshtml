@@ -1,0 +1,95 @@
+@model SaleIndexViewModel
+@{
+    ViewData["Title"] = "Ventes";
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Ventes</h1>
+    <a asp-action="Create" class="btn btn-primary btn-sm ms-auto">Nouvelle vente</a>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+
+<div class="card landing-card mb-3">
+    <div class="card-body py-2">
+        <form asp-action="Index" method="get" class="row g-2 align-items-end">
+            <div class="col-sm-6">
+                <label asp-for="Search" class="form-label mb-1"></label>
+                <input asp-for="Search" class="form-control form-control-sm" autocomplete="off"
+                       placeholder="Nom, prénom ou n° de compte du client" />
+            </div>
+            <div class="col-sm-3 d-flex gap-2">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Rechercher</button>
+                @if (!string.IsNullOrEmpty(Model.Search))
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Réinitialiser</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card landing-card">
+    @if (Model.Sales.Count == 0)
+    {
+        <div class="card-body text-muted">
+            @(string.IsNullOrEmpty(Model.Search)
+                ? "Aucune vente pour le moment — enregistrez la première avec « Nouvelle vente »."
+                : "Aucune vente ne correspond à cette recherche.")
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-dense table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Compte</th>
+                        <th class="text-end">Lignes</th>
+                        <th class="text-end">Montant</th>
+                        <th class="text-end">Acompte</th>
+                        <th>Statut</th>
+                        <th>Saisi par</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Sales)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@p.SaleDate.ToString("dd/MM/yyyy")</td>
+                            <td class="fw-semibold">@p.ClientFullName</td>
+                            <td class="font-mono">@p.ClientAccountNumber</td>
+                            <td class="text-end font-mono">@p.LineCount</td>
+                            <td class="text-end font-mono">@p.TotalAmount.ToDa()</td>
+                            <td class="text-end font-mono">@p.DownPayment.ToDa()</td>
+                            <td>
+                                @if (p.Status == InstalmentPlanStatus.Active)
+                                {
+                                    <span class="status-pill status-pill-active">@p.Status.ToFrenchLabel()</span>
+                                }
+                                else if (p.Status == InstalmentPlanStatus.Voided)
+                                {
+                                    <span class="status-pill status-pill-inactive">@p.Status.ToFrenchLabel()</span>
+                                }
+                                else
+                                {
+                                    <span class="status-pill">@p.Status.ToFrenchLabel()</span>
+                                }
+                            </td>
+                            <td class="text-muted">@(p.CreatedByName ?? "—")</td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-outline-secondary btn-sm">Détails</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

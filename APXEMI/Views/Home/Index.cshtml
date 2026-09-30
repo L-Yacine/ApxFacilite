@@ -1,0 +1,264 @@
+﻿@model DashboardViewModel
+@{
+    ViewData["Title"] = "Tableau de bord";
+    var roleLabel = Model.IsOwner ? UserRole.Owner.ToFrench() : UserRole.Seller.ToFrench();
+    var today = DateTime.Today;
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Bonjour, @Model.UserName</h1>
+    <span class="role-pill">@roleLabel</span>
+    <span class="text-muted small ms-auto">@today.ToString("dddd dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))</span>
+</div>
+
+@if (Model.IsOwner)
+{
+    var owner = Model.Owner!;
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-card-label">Mensualités dues ce mois</div>
+                <div class="stat-card-value">@owner.DueThisMonthCount</div>
+                <div class="stat-card-sub font-mono">@owner.DueThisMonthAmount.ToDa()</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-card-label">Mensualités en retard</div>
+                <div class="stat-card-value @(owner.OverdueCount > 0 ? "text-danger" : "")">@owner.OverdueCount</div>
+                <div class="stat-card-sub font-mono">@owner.OverdueAmount.ToDa()</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-card-label">Ventes ce mois</div>
+                <div class="stat-card-value">@owner.SalesThisMonthCount</div>
+                <div class="stat-card-sub font-mono">@owner.SalesThisMonthAmount.ToDa()</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-indigo">
+                <div class="stat-card-label">Encaissé ce mois</div>
+                <div class="stat-card-value">@owner.CollectedThisMonthCount</div>
+                <div class="stat-card-sub font-mono">@owner.CollectedThisMonthAmount.ToDa()</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-lg-4">
+            <div class="card landing-card h-100">
+                <div class="card-header bg-transparent fw-semibold">Prélèvements à rapprocher</div>
+                <div class="card-body">
+                    @if (owner.BatchesPending.Count == 0)
+                    {
+                        <p class="text-muted small mb-0">Aucun lot en attente — tous les prélèvements sont rapprochés.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var batch in owner.BatchesPending)
+                            {
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-semibold">Fiche de @batch.ReferenceMonth</div>
+                                        <div class="small text-muted">
+                                            @batch.UnreconciledCount / @batch.TotalCount ligne(s) à comptabiliser
+                                        </div>
+                                    </div>
+                                    <a asp-controller="Prelevements" asp-action="Details" asp-route-id="@batch.Id"
+                                       class="btn btn-outline-secondary btn-sm">Rapprocher</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="card landing-card h-100">
+                <div class="card-header bg-transparent fw-semibold">Dernière activité</div>
+                <div class="card-body p-0">
+                    @if (owner.RecentActivity.Count == 0)
+                    {
+                        <div class="p-3 text-muted small">
+                            Aucune opération pour le moment — enregistrez un achat ou une vente.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-dense align-middle mb-0">
+                                <tbody>
+                                    @foreach (var move in owner.RecentActivity)
+                                    {
+                                        <tr>
+                                            <td class="text-nowrap">@move.MovementDate.ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                <div>@move.ProductName</div>
+                                                <div class="small text-muted">
+                                                    @(move.Type == StockMovementType.In ? "Entrée" : "Sortie") · @move.OperatorName
+                                                </div>
+                                            </td>
+                                            <td class="text-end font-mono text-nowrap">
+                                                @(move.Type == StockMovementType.In ? "+" : "−")@move.Quantity
+                                            </td>
+                                            <td class="text-end text-muted small text-nowrap">@move.StaffName</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="card landing-card h-100">
+                <div class="card-header bg-transparent fw-semibold d-flex justify-content-between align-items-center">
+                    <span>Stock bas</span>
+                    <span class="text-muted small fw-normal">≤ 5 unités</span>
+                </div>
+                <div class="card-body">
+                    @if (owner.LowStock.Count == 0)
+                    {
+                        <p class="text-muted small mb-0">Aucun produit sous le seuil de 5 unités.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var item in owner.LowStock)
+                            {
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    <span>@item.Name</span>
+                                    <span class="status-pill @(item.CurrentStockQuantity == 0 ? "status-pill-inactive" : "status-pill-active")">
+                                        @item.CurrentStockQuantity
+                                    </span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    var seller = Model.Seller!;
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-card-label">Mes ventes ce mois</div>
+                <div class="stat-card-value">@seller.SalesThisMonthCount</div>
+                <div class="stat-card-sub font-mono">@seller.SalesThisMonthAmount.ToDa()</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card @(seller.LowStockCount > 0 ? "" : "")">
+                <div class="stat-card-label">Produits en stock bas</div>
+                <div class="stat-card-value @(seller.LowStockCount > 0 ? "text-danger" : "")">@seller.LowStockCount</div>
+                <div class="stat-card-sub">sur @seller.CurrentStock.Count produit(s) actif(s)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card landing-card mb-4">
+        <div class="card-header bg-transparent fw-semibold">Mes ventes récentes</div>
+        @if (seller.RecentSales.Count == 0)
+        {
+            <div class="card-body text-muted">
+                Aucune vente enregistrée pour le moment.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-dense table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th class="text-end">Montant</th>
+                            <th>Statut</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sale in seller.RecentSales)
+                        {
+                            <tr>
+                                <td class="text-nowrap">@sale.SaleDate.ToString("dd/MM/yyyy")</td>
+                                <td>@sale.ClientFullName</td>
+                                <td class="text-end font-mono">@sale.TotalAmount.ToDa()</td>
+                                <td>
+                                    @if (sale.Status == InstalmentPlanStatus.Active)
+                                    {
+                                        <span class="status-pill status-pill-active">@sale.Status.ToFrenchLabel()</span>
+                                    }
+                                    else if (sale.Status == InstalmentPlanStatus.Completed)
+                                    {
+                                        <span class="status-pill status-pill-inactive">@sale.Status.ToFrenchLabel()</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill">@sale.Status.ToFrenchLabel()</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <a asp-controller="Sales" asp-action="Details" asp-route-id="@sale.Id"
+                                       class="btn btn-outline-secondary btn-sm">Voir</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="card landing-card">
+        <div class="card-header bg-transparent fw-semibold">Stock courant</div>
+        @if (seller.CurrentStock.Count == 0)
+        {
+            <div class="card-body text-muted">
+                Aucun produit actif dans le catalogue.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-dense table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th class="text-end">Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in seller.CurrentStock)
+                        {
+                            <tr>
+                                <td>@item.Name</td>
+                                <td class="text-end">
+                                    @if (item.CurrentStockQuantity <= 5)
+                                    {
+                                        <span class="status-pill @(item.CurrentStockQuantity == 0 ? "status-pill-inactive" : "status-pill-active")">
+                                            @item.CurrentStockQuantity
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="font-mono">@item.CurrentStockQuantity</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}

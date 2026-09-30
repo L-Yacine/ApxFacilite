@@ -1,0 +1,115 @@
+@model PrelevementIndexViewModel
+@{
+    ViewData["Title"] = "Fiche de prélèvement";
+    var isOwner = User.IsInRole(nameof(UserRole.Owner));
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Fiche de prélèvement</h1>
+    <div class="text-muted small">Génération mensuelle du fichier à déposer à la poste (PRD §7.6)</div>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2">@error</div>
+}
+
+@if (isOwner)
+{
+    <div class="card landing-card mb-3">
+        <div class="card-body py-2">
+            <form asp-action="Generate" method="post" class="row g-2 align-items-end">
+                <div class="col-sm-3">
+                    <label for="referenceMonth" class="form-label mb-1">Mois de référence</label>
+                    <input id="referenceMonth" name="referenceMonth" class="form-control form-control-sm font-mono"
+                           value="@Model.ReferenceMonth" placeholder="MM/yyyy" maxlength="7" required
+                           pattern="\d{2}/\d{4}" title="Format MM/yyyy (ex. 01/2027)" />
+                </div>
+                <div class="col-sm-9">
+                    <button type="submit" class="btn btn-primary btn-sm">Générer le prélèvement</button>
+                    <span class="text-muted small ms-2">
+                        Le système trouve chaque mensualité due du mois.
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="card landing-card">
+    @if (Model.Batches.Count == 0)
+    {
+        <div class="card-body text-muted">
+            Aucun lot généré pour le moment — choisissez un mois ci-dessus.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-dense table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Mois</th>
+                        <th>Généré le</th>
+                        <th>Par</th>
+                        <th class="text-end">Lignes</th>
+                        <th class="text-end">Total à prélever</th>
+                        <th>Rapprochement</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.Batches)
+                    {
+                        <tr>
+                            <td class="font-mono fw-semibold">@b.ReferenceMonth</td>
+                            <td class="text-nowrap">@b.GeneratedAtUtc.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")</td>
+                            <td>@(b.GeneratedByName ?? "—")</td>
+                            <td class="text-end">
+                                @b.LineCount
+                                @if (b.ExcludedCount > 0)
+                                {
+                                    <span class="text-muted">(@b.ExcludedCount exclue(s))</span>
+                                }
+                            </td>
+                            <td class="text-end font-mono fw-semibold">@b.TotalAmount.ToDa()</td>
+                            <td>
+                                @if (b.ReconciledAtUtc.HasValue)
+                                {
+                                    <span class="status-pill status-pill-active">Rapproché</span>
+                                    <span class="text-muted small d-block">
+                                        @b.ReconciledAtUtc.Value.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")
+                                        @if (b.ReconciledByName is not null)
+                                        {
+                                            <text>· @b.ReconciledByName</text>
+                                        }
+                                    </span>
+                                }
+                                else if (b.PaidCount + b.FailedCount > 0)
+                                {
+                                    <span class="status-pill">En cours</span>
+                                    <span class="text-muted small d-block">@b.PaidCount payée(s) · @b.FailedCount échouée(s)</span>
+                                }
+                                else
+                                {
+                                    <span class="status-pill status-pill-inactive">À rapprocher</span>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a asp-action="Details" asp-route-id="@b.Id" class="btn btn-sm btn-outline-secondary">Ouvrir</a>
+                                @if (isOwner)
+                                {
+                                    <a asp-action="Export" asp-route-id="@b.Id" class="btn btn-sm btn-outline-primary">Exporter</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

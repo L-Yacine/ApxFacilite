@@ -1,0 +1,56 @@
+@model EditBrandViewModel
+@{
+    ViewData["Title"] = "Modifier la marque";
+}
+
+<div class="page-header">
+    <h1 class="h4 mb-0">Modifier la marque</h1>
+    @if (Model.IsActive)
+    {
+        <span class="status-pill status-pill-active">Active</span>
+    }
+    else
+    {
+        <span class="status-pill status-pill-inactive">Désactivée</span>
+    }
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success py-2">@success</div>
+}
+
+<div class="card landing-card" style="max-width: 480px;">
+    <div class="card-body">
+        <form asp-action="EditBrand" asp-route-id="@Model.Id" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" autocomplete="off" autofocus />
+                <span asp-validation-for="Name" class="field-error"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Retour à la liste</a>
+            </div>
+        </form>
+
+        <div class="text-muted small mt-3">
+            Créée le @Model.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+            @(Model.CreatedByName is null ? string.Empty : $"par {Model.CreatedByName}")
+            @if (Model.UpdatedAtUtc is { } updatedAt)
+            {
+                <br />
+                @:Dernière modification le @updatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                @(Model.UpdatedByName is null ? string.Empty : $"par {Model.UpdatedByName}")
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
